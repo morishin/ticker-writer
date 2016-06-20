@@ -1,0 +1,4 @@
+.git
+.bundle
+vendor/bundle
+docker-compose.yml
