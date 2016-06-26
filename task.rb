@@ -5,18 +5,22 @@ require 'retryable'
 class Task
   DB_HOST = ENV['DB_HOST']
   DB_PORT = ENV['DB_PORT']
+  DB_NAME = ENV['DB_NAME']
+  DB_USER = ENV['DB_USER']
+  DB_PASS = ENV['DB_PASS']
   SLACK_URL = ENV['SLACK_WEBHOOK_URL']
-  API_URL = 'https://coincheck.jp/api/ticker'
-  DB_NAME = 'ticker'
+
+  COINCHECK_API_URL = 'https://coincheck.jp/api/ticker'
 
   def self.run
-    if [DB_HOST, DB_PORT, SLACK_URL].include?(nil)
-      raise 'These environment variables must be set: SLACK_WEBHOOK_URL, DB_HOST, DB_PORT'
+    required_vars = [DB_HOST, DB_PORT, DB_NAME, DB_USER, DB_PASS, SLACK_URL]
+    if required_vars.include?(nil)
+      raise "These environment variables must be set: DB_HOST, DB_PORT, DB_NAME, DB_USER, DB_PASS"
     end
 
     begin
       response = Retryable.retryable(tries: 3) do
-        RestClient.get API_URL
+        RestClient.get COINCHECK_API_URL
       end
     rescue => error
       notify_error_to_slack(error)
@@ -26,17 +30,10 @@ class Task
     data = JSON.parse(response)
     last = data['last']
 
-    base_url = "http://#{DB_HOST}:#{DB_PORT}"
+    base_url = "http://#{DB_USER}:#{DB_PASS}@#{DB_HOST}:#{DB_PORT}"
 
     begin
-      RestClient.get "#{base_url}/query", { params: { q: "CREATE DATABASE IF NOT EXISTS #{DB_NAME}" } }
-    rescue => error
-      notify_error_to_slack(error)
-      exit 1
-    end
-
-    begin
-      Retryable.retryable(tries: 3) do
+      Retryable.retryable(tries: 3, sleep: 5.0) do
         RestClient.post "#{base_url}/write?db=ticker", "#{DB_NAME} last=#{last}"
       end
     rescue => error

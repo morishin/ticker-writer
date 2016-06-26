@@ -6,11 +6,19 @@ services:
       - SLACK_WEBHOOK_URL=$SLACK_WEBHOOK_URL
       - DB_HOST=influxdb
       - DB_PORT=8086
+      - DB_NAME=ticker
+      - DB_USER=$DB_USER
+      - DB_PASS=$DB_PASS
     depends_on:
       - influxdb
 
   influxdb:
     image: tutum/influxdb
+    environment:
+      - ADMIN_USER=$DB_USER
+      - INFLUXDB_INIT_PWD=$DB_PASS
+      - PRE_CREATE_DB=ticker
+      - INFLUXDB_HTTP_AUTH_ENABLED=true
     ports:
       - '8083:8083'
       - '8086:8086'
