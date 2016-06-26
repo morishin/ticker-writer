@@ -13,8 +13,8 @@ class Task
   COINCHECK_API_URL = 'https://coincheck.jp/api/ticker'
 
   def self.run
-    required_vars = [DB_HOST, DB_PORT, DB_NAME, DB_USER, DB_PASS, SLACK_URL]
-    if required_vars.include?(nil)
+    required_vars = [DB_HOST, DB_PORT, DB_NAME, DB_USER, DB_PASS]
+    if required_vars.include?(nil) || required_vars.include?("")
       raise "These environment variables must be set: DB_HOST, DB_PORT, DB_NAME, DB_USER, DB_PASS"
     end
 
@@ -23,7 +23,7 @@ class Task
         RestClient.get COINCHECK_API_URL
       end
     rescue => error
-      notify_error_to_slack(error)
+      notify_error_to_slack(error) unless SLACK_URL.nil? || SLACK_URL.empty?
       exit 1
     end
 
@@ -37,7 +37,7 @@ class Task
         RestClient.post "#{base_url}/write?db=ticker", "#{DB_NAME} last=#{last}"
       end
     rescue => error
-      notify_error_to_slack(error)
+      notify_error_to_slack(error) unless SLACK_URL.nil? || SLACK_URL.empty?
     end
   end
 
