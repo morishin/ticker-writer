@@ -1,4 +1,4 @@
-FROM ruby:latest
+FROM ruby:2.3
 
 RUN cp /usr/share/zoneinfo/Asia/Tokyo /etc/localtime
 
@@ -11,4 +11,4 @@ RUN mkdir $app
 WORKDIR $app
 ADD . $app
 
-CMD bundle exec clockwork clock.rb
+CMD bundle exec ruby init.rb && bundle exec clockwork clock.rb

@@ -9,15 +9,14 @@ services:
       - DB_NAME=ticker
       - DB_USER=$DB_USER
       - DB_PASS=$DB_PASS
+      - DB_RETENTION_DURATION=$DB_RETENTION_DURATION
     depends_on:
       - influxdb
 
   influxdb:
-    image: tutum/influxdb
+    image: influxdb:1.2
     environment:
-      - ADMIN_USER=$DB_USER
-      - INFLUXDB_INIT_PWD=$DB_PASS
-      - PRE_CREATE_DB=ticker
+      - INFLUXDB_ADMIN_ENABLED=true
       - INFLUXDB_HTTP_AUTH_ENABLED=true
     ports:
       - '8083:8083'
